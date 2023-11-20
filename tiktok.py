@@ -5,9 +5,7 @@ os.system('sudo apt update -y')
 os.system('sudo apt install python3-pip -y')
 os.system('sudo wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb')
 os.system('sudo apt install ./google-chrome-stable_current_amd64.deb -y')
-os.system('pip install seleniumbase')
 os.system('pip install selenium')
-os.system('pip install pymongo')
 import subprocess
 import sys
 import time
@@ -18,14 +16,9 @@ import requests
 from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import NoSuchWindowException
 from selenium.webdriver.chrome.options import Options
+from datetime import datetime, timedelta
 import pickle
-import pymongo
-from pymongo import MongoClient
 import requests
-
-cluster = MongoClient('mongodb+srv://theloveme1238:zx5LtPcgLpcpIh7D@cluster0.pzuhxov.mongodb.net/?retryWrites=true&w=majority')
-db = cluster["my_database"]
-collection = db["{}".format(str(fisrt_start))]
 def open_browser():
     global driver
     options = Options()
@@ -150,7 +143,7 @@ def follow_tiktok():
     page_height = driver.execute_script("return document.body.scrollHeight;")
     driver.set_window_size(1920, page_height)
 
-    for s in range(999999999999999):
+    for s in range(200):
         try:
             element_control_click = driver.find_element(By.CSS_SELECTOR,"a[class^='cursor earn_pages_button profile_view_img']")
             onclick_value = element_control_click.get_attribute("onclick").split('tiktok.com/')[-1].split("'")[0]
@@ -171,26 +164,28 @@ def follow_tiktok():
                         result.write("\n")
                         result.write(onclick_value)
                     driver.switch_to.window(driver.window_handles[1])
-                    time.sleep(2)
-                    email_to_find = "first"
-                    username = onclick_value
-                    run = 'start'
-                    user_data = collection.find_one({"email": email_to_find})
-                    collection.update_one({"mobile": email_to_find},{"$set": {"username": username}},)
-                    collection.update_one({"mobile": email_to_find},{"$set": {"run": run}},)
-                    for a in range(100):
-                        time.sleep(1)
-                        user_data = collection.find_one({"mobile": email_to_find})
-                        date_stop = user_data['run']
-                        print(date_stop)
-                        if date_stop == 'stop':
-                            print('fisnh_stop')
-                            break
-                        
-
+                    
+                    username = onclick_value.split('@')[-1]
+                    database_url = 'https://ahmed-3cacf-default-rtdb.firebaseio.com/'
+                    users_endpoint = fisrt_start
+                    new_user_data = {"name": "mohamed", "email": username}
+                    response_put = requests.put(f'{database_url}/{users_endpoint}', json=new_user_data)
+                    while True:
+                        try:
+                            time.sleep(1)
+                            response_get = requests.get(f'{database_url}/{users_endpoint}')
+                            
+                            user_data = response_get.json()
+                            email = user_data['email']
+                            print(email)
+                            if email == 'stop':
+                                print('stop')
+                                break
+                        except:
+                            pass
                     driver.close()
                     driver.switch_to.window(driver.window_handles[0])
-                    time.sleep(2)
+                    time.sleep(4)
                     driver.find_element(By.CSS_SELECTOR, '[alt="Click On The Button To Confirm Interaction!"]').click()
                                                                 
         except Exception as s:
